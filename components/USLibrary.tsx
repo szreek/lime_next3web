@@ -2,6 +2,7 @@ import type { Web3Provider } from "@ethersproject/providers";
 import { useWeb3React } from "@web3-react/core";
 import { useEffect, useState } from "react";
 import useUSElectionContract from "../hooks/useUSElectionContract";
+import loadingIndicator from "./LoadingIndicator"
 
 type USContract = {
   contractAddress: string;
@@ -21,14 +22,31 @@ const USLibrary = ({ contractAddress }: USContract) => {
   const [votesBiden, setVotesBiden] = useState<number | undefined>();
   const [votesTrump, setVotesTrump] = useState<number | undefined>();
   const [stateSeats, setStateSeats] = useState<number | undefined>();
+  const [electionState, setElectionState] = useState<string>('Active');
 
   useEffect(() => {
     getCurrentLeader();
+    getCurrentSeats();
+    getElectionStatus();
   },[])
 
   const getCurrentLeader = async () => {
-    const currentLeader = await usElectionContract.currentLeader();
+    const currentLeader = await usElectionContract.seats();
     setCurrentLeader(currentLeader == Leader.UNKNOWN ? 'Unknown' : currentLeader == Leader.BIDEN ? 'Biden' : 'Trump')
+  }
+
+  const getCurrentSeats = async () => {
+    const bidenSeats = await usElectionContract.seats(1);
+    const trumpSeats = await usElectionContract.seats(2);
+    const currentSeats = bidenSeats + trumpSeats;
+    bidenSeats(bidenSeats)
+    trumpSeats(trumpSeats)
+    seatsInput(currentSeats)
+  }
+
+  const getElectionStatus = async () => {
+    const _electionState = await usElectionContract.electionEnded();
+    setElectionState(_electionState ? "Inactive" : "Active");
   }
 
   const stateInput = (input) => {
@@ -48,10 +66,12 @@ const USLibrary = ({ contractAddress }: USContract) => {
   }
 
   const submitStateResults = async () => {
-    const result:any = [name, votesBiden, votesTrump, stateSeats];
-    const tx = await usElectionContract.submitStateResult(result);
-    await tx.wait();
-    resetForm();
+    if(electionState === "Active") {
+      const result:any = [name, votesBiden, votesTrump, stateSeats];
+      const tx = await usElectionContract.submitStateResult(result);
+      await tx.wait();
+      resetForm();
+    }
   }
 
   const resetForm = async () => {
@@ -60,6 +80,10 @@ const USLibrary = ({ contractAddress }: USContract) => {
     setVotesTrump(0);
     setStateSeats(0);
   }
+
+  usElectionContract.on('LogElectionEnded', (winner) => {
+    setElectionState("Inactive");
+  });
 
   return (
     <div className="results-form">
