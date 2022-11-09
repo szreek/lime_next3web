@@ -2108,6 +2108,11 @@
   "resolved" "https://registry.npmjs.org/domain-browser/-/domain-browser-4.19.0.tgz"
   "version" "4.19.0"
 
+"dotenv@^16.0.3":
+  "integrity" "sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ=="
+  "resolved" "https://registry.npmjs.org/dotenv/-/dotenv-16.0.3.tgz"
+  "version" "16.0.3"
+
 "eip1193-provider@1.0.1":
   "integrity" "sha512-kSuqwQ26d7CzuS/t3yRXo2Su2cVH0QfvyKbr2H7Be7O5YDyIq4hQGCNTo5wRdP07bt+E2R/8nPCzey4ojBHf7g=="
   "resolved" "https://registry.npmjs.org/eip1193-provider/-/eip1193-provider-1.0.1.tgz"
