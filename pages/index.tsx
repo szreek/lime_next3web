@@ -4,8 +4,8 @@ import Link from "next/link";
 import Account from "../components/Account";
 import NativeCurrencyBalance from "../components/NativeCurrencyBalance";
 import TokenBalance from "../components/TokenBalance";
-import USLibrary from "../components/Library";
-import { ALBT_TOKEN_ADDRESS, US_ELECTION_ADDRESS } from "../constants";
+import Library from "../components/Library";
+import { ALBT_TOKEN_ADDRESS, LIBRARY_ADDRESS } from "../constants";
 import useEagerConnect from "../hooks/useEagerConnect";
 
 function Home() {
@@ -45,7 +45,7 @@ function Home() {
             <NativeCurrencyBalance />
 
             <TokenBalance tokenAddress={ALBT_TOKEN_ADDRESS} symbol="ALBT" />
-            <USLibrary contractAddress={US_ELECTION_ADDRESS} />
+            <Library contractAddress={LIBRARY_ADDRESS} />
           </section>
         )}
       </main>
