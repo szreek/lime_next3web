@@ -2,7 +2,7 @@ import type { Web3Provider } from "@ethersproject/providers";
 import { useWeb3React } from "@web3-react/core";
 import { useEffect, useState } from "react";
 import useUSElectionContract from "../hooks/useUSElectionContract";
-import loadingIndicator from "./LoadingIndicator"
+import LoadingSpinner from "./Spinner"
 
 type USContract = {
   contractAddress: string;
@@ -25,6 +25,8 @@ const USLibrary = ({ contractAddress }: USContract) => {
   const [bidenSeats, setBidenSeats] = useState<number | 0 >();
   const [trumpSeats, setTrumpSeats] = useState<number | 0 >();
   const [electionState, setElectionState] = useState<string>('Active');
+  const [isLoading, setIsLoading] = useState(false);
+  const [transactionHash, setTransactionHash] = useState<string>('');
 
   useEffect(() => {
     getElectionStatus();
@@ -92,8 +94,11 @@ const USLibrary = ({ contractAddress }: USContract) => {
   const submitStateResults = async () => {
     if(electionState === 'Active') {
       const result:any = [name, votesBiden, votesTrump, stateSeats];
+      setIsLoading(true);
       const tx = await usElectionContract.submitStateResult(result);
+      setTransactionHash(tx.hash)
       await tx.wait();
+      setIsLoading(false);
       bideVotesInput
       resetForm();
     }
@@ -118,6 +123,7 @@ const USLibrary = ({ contractAddress }: USContract) => {
   }
 
   return (
+    
     <div className="results-form">
     <p>
       Current Leader is: {currentLeader}
@@ -143,6 +149,10 @@ const USLibrary = ({ contractAddress }: USContract) => {
     </form>
     <div className="button-wrapper">
       <button onClick={submitStateResults}>Submit Results</button>
+    </div>
+    <div>
+      {isLoading ? <LoadingSpinner  /> : resetForm}
+      {isLoading ? <a href={"https://goerli.etherscan.io/tx/" + transactionHash }>{transactionHash}</a> : "" }
     </div>
     <style jsx>{`
         .results-form {
