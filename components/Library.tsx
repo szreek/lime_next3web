@@ -36,8 +36,6 @@ const Library = ({ contractAddress }: USContract) => {
     try {
       
       let books: Array<Book> = await libraryContract.getListOfBooks();
-      
-      console.log(books)
       setAllBooks(books);
       booksToHtml(books);
     } catch(e) {
@@ -47,13 +45,11 @@ const Library = ({ contractAddress }: USContract) => {
 
 
   const booksToHtml = (_books) => {
-    console.log(_books)
     const htmlBooks = _books.map( x => 
       <li>
         {x.tittle}
     </li>);
     setAllHtmlBooks(htmlBooks)
-    console.log(allHtmlBooks)
   }
 
 
@@ -67,12 +63,37 @@ const Library = ({ contractAddress }: USContract) => {
       setErrorMessage("ERROR: "+ e);
     }
     setIsLoading(false);
-    getAvailableBooks()
+    getAvailableBooks();
+    resetForm();
   }
 
   const borrowBook  =  async () => {
+    setIsLoading(true);
+    try {
+      const tx = await libraryContract.borrowBook(bookTittle);
+      setTransactionHash(tx.hash);
+      await tx.wait();
+    } catch(e) {
+      setErrorMessage("ERROR: "+ e);
+    }
+    setIsLoading(false);
+    getAvailableBooks();
+    resetForm();
   }
 
+  const returnBook  =  async () => {
+    setIsLoading(true);
+    try {
+      const tx = await libraryContract.returnBook(bookTittle);
+      setTransactionHash(tx.hash);
+      await tx.wait();
+    } catch(e) {
+      setErrorMessage("ERROR: "+ e);
+    }
+    setIsLoading(false);
+    getAvailableBooks();
+    resetForm();
+  }
 
   const tittleInput = (input) => {
     setBookTittle(input.target.value)
@@ -91,23 +112,19 @@ const Library = ({ contractAddress }: USContract) => {
   return (
     
     <div className="results-form">
-    <p>
-      The collection of Library 'name': 
-    </p>
     <form>
       <label>
       </label>
       {/* <input type="submit" value="Submit" /> */}
     </form>
     <div>
-      <h2>Available books:</h2>
+      <h2>The collection of Books in The Library:</h2>
       {allHtmlBooks}
     </div>
     <div className="button-wrapper">
       <button onClick={borrowBook}>Submit Results</button>
     </div>
     <form>
-      <h2>Add new book:</h2>
       <label>
         Book tittle:
         <input onChange={tittleInput} value={bookTittle} type="text" name="bookTittle" />
@@ -120,6 +137,8 @@ const Library = ({ contractAddress }: USContract) => {
     </form>
     <div className="button-wrapper">
       <button onClick={addBook} disabled={isLoading}>Add Book</button>
+      <button onClick={borrowBook} disabled={isLoading}>Borrow Book</button>
+      <button onClick={returnBook} disabled={isLoading}>Return Book</button>
     </div>
     <div>
       {isLoading ? <LoadingSpinner /> : resetForm}
