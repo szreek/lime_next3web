@@ -19,16 +19,36 @@ const USLibrary = ({ contractAddress }: USContract) => {
   const usElectionContract = useUSElectionContract(contractAddress);
   const [currentLeader, setCurrentLeader] = useState<string>('Unknown');
   const [name, setStateName] = useState<string | undefined>();
-  const [votesBiden, setVotesBiden] = useState<number | undefined>();
-  const [votesTrump, setVotesTrump] = useState<number | undefined>();
-  const [stateSeats, setStateSeats] = useState<number | undefined>();
-  const [bidenSeats, setBidenSeats] = useState<number | undefined>();
-  const [trumpSeats, setTrumpSeats] = useState<number | undefined>();
+  const [votesBiden, setVotesBiden] = useState<number | undefined >();
+  const [votesTrump, setVotesTrump] = useState<number | undefined >();
+  const [stateSeats, setStateSeats] = useState<number | undefined >();
+  const [bidenSeats, setBidenSeats] = useState<number | 0 >();
+  const [trumpSeats, setTrumpSeats] = useState<number | 0 >();
   const [electionState, setElectionState] = useState<string>('Active');
 
   useEffect(() => {
     getElectionStatus();
     getCurrentSeats();
+
+    usElectionContract.on('LogElectionEnded', (winner) => {
+      setElectionState('Inactive');
+    });
+  
+    usElectionContract.on('LogStateResult', (winner, stateSeats, state) => {
+      console.log("In" + bidenSeats + " " + trumpSeats)
+      if (winner == Leader.BIDEN) {
+        console.log(bidenSeats + stateSeats)
+        setBidenSeats(bidenSeats + stateSeats)
+      } else if (winner == Leader.TRUMP) {
+        setTrumpSeats(trumpSeats + stateSeats)
+      } else {
+        console.log("cos")
+      }
+      console.log("In LogStateResult" + winner + " " + stateSeats + state)
+      console.log("In9" + bidenSeats + " " + trumpSeats)
+      updateCurrentLeader(bidenSeats, trumpSeats)    
+    });
+
   },[])
 
   const getElectionStatus = async () => {
@@ -44,11 +64,12 @@ const USLibrary = ({ contractAddress }: USContract) => {
     try {
     const bidenSeats = await usElectionContract.seats(1);
     const trumpSeats = await usElectionContract.seats(2);
-    bidenSeatsInput(bidenSeats)
-    trumpSeatsInput(trumpSeats)
-    updateCurrentLeader()
+    console.log(bidenSeats + " " + trumpSeats)
+    setBidenSeats(bidenSeats)
+    setTrumpSeats(trumpSeats)
+    updateCurrentLeader(bidenSeats, trumpSeats)
     } catch(e) {
-      
+      console.log(e)
     }
   }
 
@@ -68,19 +89,12 @@ const USLibrary = ({ contractAddress }: USContract) => {
     setStateSeats(input.target.value)
   }
 
-  const bidenSeatsInput = (input) => {
-    setBidenSeats(input.target.value)
-  }
-
-  const trumpSeatsInput = (input) => {
-    setTrumpSeats(input.target.value)
-  }
-
   const submitStateResults = async () => {
     if(electionState === 'Active') {
       const result:any = [name, votesBiden, votesTrump, stateSeats];
       const tx = await usElectionContract.submitStateResult(result);
       await tx.wait();
+      bideVotesInput
       resetForm();
     }
   }
@@ -92,26 +106,11 @@ const USLibrary = ({ contractAddress }: USContract) => {
     setStateSeats(0);
   }
 
-  usElectionContract.on('LogElectionEnded', (winner) => {
-    setElectionState('Inactive');
-  });
-
-  usElectionContract.on('LogStateResult', (winner, stateSeats, state) => {
-    if (winner == Leader.BIDEN) {
-      setBidenSeats(bidenSeats + stateSeats)
-    } else if (winner == Leader.TRUMP) {
-      setTrumpSeats(trumpSeats + stateSeats)
-    } else {
-      //exception
-    }
-
-    updateCurrentLeader()    
-  });
-
-  const updateCurrentLeader = () => {
-    if(bidenSeats > trumpSeats) {
+  const updateCurrentLeader = (bidenS, trumpS) => {
+    console.log(bidenS + " " + trumpS)
+    if(bidenS > trumpS) {
       setCurrentLeader(Leader[1]);
-    } else if(trumpSeats > bidenSeats) {
+    } else if(trumpS > bidenS) {
       setCurrentLeader(Leader[2]);
     } else {
       setCurrentLeader(Leader[0]);
