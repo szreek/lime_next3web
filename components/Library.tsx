@@ -18,7 +18,9 @@ const Library = ({ contractAddress }: USContract) => {
   const [allBooks, setAllBooks] = useState<Book[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [bookTittle, setBookTittle] = useState<string | undefined>();
+  const [bookTittle2, setBookTittle2] = useState<string | undefined>();
   const [bookCopies, setBookCopies] = useState<number | undefined>();
+  const [resultedWithError, setResultedWithError] = useState<boolean>(false);
   
 
   type Book = {
@@ -34,12 +36,12 @@ const Library = ({ contractAddress }: USContract) => {
 
   const getAvailableBooks = async () => {
     try {
-      
       let books: Array<Book> = await libraryContract.getListOfBooks();
       setAllBooks(books);
       booksToHtml(books);
     } catch(e) {
       setErrorMessage("ERROR: "+ e);
+      setResultedWithError(true);
     }
   }
 
@@ -61,6 +63,7 @@ const Library = ({ contractAddress }: USContract) => {
       await tx.wait();
     } catch(e) {
       setErrorMessage("ERROR: "+ e);
+      setResultedWithError(true);
     }
     setIsLoading(false);
     getAvailableBooks();
@@ -70,11 +73,12 @@ const Library = ({ contractAddress }: USContract) => {
   const borrowBook  =  async () => {
     setIsLoading(true);
     try {
-      const tx = await libraryContract.borrowBook(bookTittle);
+      const tx = await libraryContract.borrowBook(bookTittle2);
       setTransactionHash(tx.hash);
       await tx.wait();
     } catch(e) {
       setErrorMessage("ERROR: "+ e);
+      setResultedWithError(true);
     }
     setIsLoading(false);
     getAvailableBooks();
@@ -84,28 +88,42 @@ const Library = ({ contractAddress }: USContract) => {
   const returnBook  =  async () => {
     setIsLoading(true);
     try {
-      const tx = await libraryContract.returnBook(bookTittle);
+      const tx = await libraryContract.returnBook(bookTittle2);
       setTransactionHash(tx.hash);
       await tx.wait();
     } catch(e) {
       setErrorMessage("ERROR: "+ e);
+      setResultedWithError(true);
     }
     setIsLoading(false);
     getAvailableBooks();
     resetForm();
   }
 
-  const tittleInput = (input) => {
+  const takeTittleInput = (input) => {
+    setResultedWithError(false);
     setBookTittle(input.target.value)
   }
 
-  const copiesInput = (input) => {
+  const takeTittle2Input = (input) => {
+    setResultedWithError(false);
+    setBookTittle2(input.target.value)
+  }
+
+  const takeCopiesInput = (input) => {
+    setResultedWithError(false);
     setBookCopies(input.target.value)
   }
 
   const resetForm = async () => {
     setBookTittle('');
+    setBookTittle2('');
     setBookCopies(0);
+  }
+
+  const clearErrorMessage = async () => {
+    setResultedWithError(false);
+    setErrorMessage('');
   }
 
 
@@ -127,11 +145,11 @@ const Library = ({ contractAddress }: USContract) => {
     <form>
       <label>
         Book tittle:
-        <input onChange={tittleInput} value={bookTittle} type="text" name="bookTittle" />
+        <input onChange={takeTittleInput} onFocusCapture={clearErrorMessage} value={bookTittle} type="text" name="bookTittle" />
       </label>
       <label>
         Copies:
-        <input onChange={copiesInput} value={bookCopies} type="number" name="copies" />
+        <input onChange={takeCopiesInput} onFocusCapture={clearErrorMessage} value={bookCopies} type="number" name="copies" />
       </label>
       {/* <input type="submit" value="Submit" /> */}
     </form>
@@ -141,7 +159,7 @@ const Library = ({ contractAddress }: USContract) => {
     <form>
       <label>
         Book tittle:
-        <input onChange={tittleInput} value={bookTittle} type="text" name="bookTittle" />
+        <input onChange={takeTittle2Input} onFocusCapture={clearErrorMessage} value={bookTittle2} type="text" name="bookTittle" />
       </label>
       {/* <input type="submit" value="Submit" /> */}
     </form>
@@ -152,6 +170,9 @@ const Library = ({ contractAddress }: USContract) => {
     <div>
       {isLoading ? <LoadingSpinner /> : resetForm}
       {isLoading ? <a href={"https://goerli.etherscan.io/tx/" + transactionHash }>{transactionHash}</a> : "" }
+    </div>
+    <div>
+      {resultedWithError ? errorMessage : clearErrorMessage}
     </div>
     <style jsx>{`
         .results-form {
