@@ -15,7 +15,7 @@ const Library = ({ contractAddress }: USContract) => {
   const [isLoading, setIsLoading] = useState(false);
   const [transactionHash, setTransactionHash] = useState<string>('');
   const [allHtmlBooks, setAllHtmlBooks] = useState<JSX.Element[]>([]);
-  const [allBooks, setAllBooks] = useState<[]>([]);
+  const [allBooks, setAllBooks] = useState<Book[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [bookTittle, setBookTittle] = useState<string | undefined>();
   const [bookCopies, setBookCopies] = useState<number | undefined>();
@@ -35,7 +35,9 @@ const Library = ({ contractAddress }: USContract) => {
   const getAvailableBooks = async () => {
     try {
       
-      const books = await libraryContract.getListOfBooks();
+      let books: Array<Book> = await libraryContract.getListOfBooks();
+      
+      console.log(books)
       setAllBooks(books);
       booksToHtml(books);
     } catch(e) {
@@ -45,11 +47,13 @@ const Library = ({ contractAddress }: USContract) => {
 
 
   const booksToHtml = (_books) => {
+    console.log(_books)
     const htmlBooks = _books.map( x => 
       <li>
-        x.tittle
+        {x.tittle}
     </li>);
     setAllHtmlBooks(htmlBooks)
+    console.log(allHtmlBooks)
   }
 
 
@@ -76,6 +80,11 @@ const Library = ({ contractAddress }: USContract) => {
 
   const copiesInput = (input) => {
     setBookCopies(input.target.value)
+  }
+
+  const resetForm = async () => {
+    setBookTittle('');
+    setBookCopies(0);
   }
 
 
@@ -109,7 +118,11 @@ const Library = ({ contractAddress }: USContract) => {
       </label>
       {/* <input type="submit" value="Submit" /> */}
     </form>
+    <div className="button-wrapper">
+      <button onClick={addBook} disabled={isLoading}>Add Book</button>
+    </div>
     <div>
+      {isLoading ? <LoadingSpinner /> : resetForm}
       {isLoading ? <a href={"https://goerli.etherscan.io/tx/" + transactionHash }>{transactionHash}</a> : "" }
     </div>
     <style jsx>{`
