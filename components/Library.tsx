@@ -137,6 +137,15 @@ const Library = ({ contractAddress }: USContract) => {
     </form>
     <div className="button-wrapper">
       <button onClick={addBook} disabled={isLoading}>Add Book</button>
+    </div>
+    <form>
+      <label>
+        Book tittle:
+        <input onChange={tittleInput} value={bookTittle} type="text" name="bookTittle" />
+      </label>
+      {/* <input type="submit" value="Submit" /> */}
+    </form>
+    <div className="button-wrapper">
       <button onClick={borrowBook} disabled={isLoading}>Borrow Book</button>
       <button onClick={returnBook} disabled={isLoading}>Return Book</button>
     </div>
